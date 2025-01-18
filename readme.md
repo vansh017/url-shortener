@@ -18,6 +18,20 @@ This project is a URL Shortener Service implemented in Python using FastAPI and 
 - Python 3.8 or later
 - Pip
 
+### Clone the Repository
+
+```bash
+# HTTPS
+https://github.com/vansh017/url-shortener.git
+
+# or SSH
+git@github.com:vansh017/url-shortener.git
+
+# Change to project directory
+cd url-shortener
+```
+
+
 ## Installation
 
 1. Install the required dependencies:
