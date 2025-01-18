@@ -25,9 +25,7 @@ This project is a URL Shortener Service implemented in Python using FastAPI and 
    pip install -r reuquirements.txt
    ```
 
-## Configuration
 
-The database file is stored at `/home/vanshpatel/sqlite_db/shortener.db`. If you want to use a different location, update the `DATABASE_PATH` variable in the code.
 
 ## Running the Application
 
