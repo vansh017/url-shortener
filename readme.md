@@ -36,7 +36,7 @@ cd url-shortener
 
 1. Install the required dependencies:
    ```bash
-   pip install -r reuquirements.txt
+   pip install -r requirement.txt 
    ```
 
 
