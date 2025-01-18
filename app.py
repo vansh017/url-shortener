@@ -71,7 +71,7 @@ def get_current_date_time():
     return time.strftime('%Y-%m-%d %H:%M:%S')
 
 def generate_short_url(original_url: str) -> str:
-    hash_object = hashlib.md5(original_url.encode())
+    hash_object = hashlib.sha256(original_url.encode())
     short_hash = hash_object.hexdigest()[:6]
     return BASE_URL + short_hash
 
@@ -86,6 +86,10 @@ def shorten_url(request: URLRequest, db: Session = Depends(get_db)):
     short_url = generate_short_url(original_url)
     expiration_time = datetime.utcnow() + timedelta(hours=request.expiration_hours)
     password_hash = hash_password(request.password)
+
+    existing_url = db.query(URL).filter(URL.original_url == str(request.original_url)).first()
+    if existing_url:
+        return {"shortened_url": existing_url.shortened_url}
     new_url = URL(
         original_url=original_url,
         shortened_url=short_url,
