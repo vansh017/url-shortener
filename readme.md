@@ -31,10 +31,29 @@ The database file is stored at `/home/vanshpatel/sqlite_db/shortener.db`. If you
 
 ## Running the Application
 
-1. Start the FastAPI server:
+1. Start the server:
    ```bash
    python app.py
    ```
+
+### Security Features
+
+- Optional password protection
+- Secure password hashing (MD-5)
+- Configurable URL expiration
+- Prevents unauthorized access
+
+### Error Scenarios
+
+- **No Password Provided**: 401 Unauthorized
+- **Incorrect Password**: 403 Forbidden
+- **Expired URL**: 410 Gone
+
+## Best Practices
+
+- Use strong, unique passwords
+- Set appropriate expiration times
+- Avoid sharing sensitive URLs in public spaces
 
 ## API Endpoints
 
