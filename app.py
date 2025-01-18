@@ -82,24 +82,27 @@ def hash_password(password: str) -> str:
 
 @app.post("/shorten")
 def shorten_url(request: URLRequest, db: Session = Depends(get_db)):
-    original_url = str(request.original_url)
-    short_url = generate_short_url(original_url)
-    expiration_time = datetime.utcnow() + timedelta(hours=request.expiration_hours)
-    password_hash = hash_password(request.password)
+    try:
+        original_url = str(request.original_url)
+        short_url = generate_short_url(original_url)
+        expiration_time = datetime.utcnow() + timedelta(hours=request.expiration_hours)
+        password_hash = hash_password(request.password)
 
-    existing_url = db.query(URL).filter(URL.original_url == str(request.original_url)).first()
-    if existing_url:
-        return {"shortened_url": existing_url.shortened_url}
-    new_url = URL(
-        original_url=original_url,
-        shortened_url=short_url,
-        expiration_time=expiration_time,
-        password_hash=password_hash
-    )
-    db.add(new_url)
-    db.commit()
-    db.refresh(new_url)
-    return {"shortened_url": short_url}
+        existing_url = db.query(URL).filter(URL.original_url == str(request.original_url)).first()
+        if existing_url:
+            return {"shortened_url": existing_url.shortened_url}
+        new_url = URL(
+            original_url=original_url,
+            shortened_url=short_url,
+            expiration_time=expiration_time,
+            password_hash=password_hash
+        )
+        db.add(new_url)
+        db.commit()
+        db.refresh(new_url)
+        return {"shortened_url": short_url}
+    except Exception as e:
+        print(e)
 
 @app.get("/{short_url}")
 def redirect_url(
@@ -108,42 +111,49 @@ def redirect_url(
     password: str = None,  
     db: Session = Depends(get_db)
 ):
-    full_url = BASE_URL + short_url
-    url_entry = db.query(URL).filter(URL.shortened_url == full_url).first()
-    if not url_entry:
-        raise HTTPException(status_code=404, detail="URL not found")
-    if url_entry.expiration_time < datetime.utcnow():
-        raise HTTPException(status_code=410, detail="URL has expired")
-    if url_entry.password_hash:
-        if not password:
-            raise HTTPException(status_code=401, detail="Password required")
-        if hash_password(password) != url_entry.password_hash:
-            raise HTTPException(status_code=403, detail="Incorrect password")
-    access_log = AccessLog(
-        url_id=url_entry.id, 
-        ip_address=request.client.host
-    )
-    db.add(access_log)
-    url_entry.access_count += 1
-    db.commit()
+    try:
 
-    return {"redirect_to": url_entry.original_url}
+        full_url = BASE_URL + short_url
+        url_entry = db.query(URL).filter(URL.shortened_url == full_url).first()
+        if not url_entry:
+            raise HTTPException(status_code=404, detail="URL not found")
+        if url_entry.expiration_time < datetime.utcnow():
+            raise HTTPException(status_code=410, detail="URL has expired")
+        if url_entry.password_hash:
+            if not password:
+                raise HTTPException(status_code=401, detail="Password required")
+            if hash_password(password) != url_entry.password_hash:
+                raise HTTPException(status_code=403, detail="Incorrect password")
+        access_log = AccessLog(
+            url_id=url_entry.id,
+            ip_address=request.client.host
+        )
+        db.add(access_log)
+        url_entry.access_count += 1
+        db.commit()
+
+        return {"redirect_to": url_entry.original_url}
+    except Exception as e:
+        print(e)
 
 @app.get("/analytics/{short_url}")
 def get_analytics(short_url: str, db: Session = Depends(get_db)):
-    full_url = BASE_URL + short_url
-    url_entry = db.query(URL).filter(URL.shortened_url == full_url).first()
-    if not url_entry:
-        raise HTTPException(status_code=404, detail="Shortened URL not found")
-    access_logs = (db.query(AccessLog)
-                   .join(URL, and_(AccessLog.url_id == URL.id)).filter(URL.shortened_url == full_url)
-                   .all())
-    logs = [{"timestamp": log.timestamp, "ip_address": log.ip_address} for log in access_logs]
-    return {
-        "original_url": url_entry.original_url,
-        "access_count": url_entry.access_count,
-        "access_logs": logs
-    }
+    try:
+        full_url = BASE_URL + short_url
+        url_entry = db.query(URL).filter(URL.shortened_url == full_url).first()
+        if not url_entry:
+            raise HTTPException(status_code=404, detail="Shortened URL not found")
+        access_logs = (db.query(AccessLog)
+                       .join(URL, and_(AccessLog.url_id == URL.id)).filter(URL.shortened_url == full_url)
+                       .all())
+        logs = [{"timestamp": log.timestamp, "ip_address": log.ip_address} for log in access_logs]
+        return {
+            "original_url": url_entry.original_url,
+            "access_count": url_entry.access_count,
+            "access_logs": logs
+        }
+    except Exception as e:
+        print(e)
 
 @app.get("/", include_in_schema=False)
 def index():
