@@ -35,7 +35,6 @@ The database file is stored at `/home/vanshpatel/sqlite_db/shortener.db`. If you
    ```bash
    python app.py
    ```
-2. The server will be accessible at `http://localhost:3500`.
 
 ## API Endpoints
 
